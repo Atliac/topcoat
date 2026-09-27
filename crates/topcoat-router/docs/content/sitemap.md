@@ -4,9 +4,10 @@ A [sitemap](https://www.sitemaps.org) lists URLs for crawlers to discover. Enabl
 
 # Serving a sitemap
 
-This example serves a sitemap at `/sitemap.xml`. Add one entry with [`url`](Sitemap::url) or an iterator of entries with [`urls`](Sitemap::urls). Each entry can be a path string or a [`SitemapUrl`] with optional metadata.
+This example serves a sitemap at `/sitemap.xml`. The relative path `./sitemap.xml` adds the filename below the enclosing module. Add one entry with [`url`](Sitemap::url) or an iterator of entries with [`urls`](Sitemap::urls). Each entry can be a path string or a [`SitemapUrl`] with optional metadata.
 
 ```rust
+// src/app.rs
 use topcoat::{
     Result,
     router::{
@@ -15,7 +16,7 @@ use topcoat::{
     },
 };
 
-#[route(GET "/sitemap.xml")]
+#[route(GET "./sitemap.xml")]
 async fn sitemap() -> Result<Sitemap> {
     let posts = ["first-post", "second-post"];
     Ok(Sitemap::new()
@@ -28,9 +29,9 @@ async fn sitemap() -> Result<Sitemap> {
 The sitemap format requires absolute URLs, so register the base URL the application is publicly reachable at on the router. An entry given as a root-relative path is resolved against it when the response is rendered; an entry that is already an absolute `http` or `https` URL is used as is. Rendering a relative entry without a registered base URL panics.
 
 ```rust,no_run
-use topcoat::router::Router;
+use topcoat::router::module_router;
 
-let router = Router::builder().base_url("https://example.com").build();
+let router = module_router!().base_url("https://example.com").build();
 ```
 
 # Entry fields
@@ -51,21 +52,3 @@ let url = SitemapUrl::new("/posts/42")
     .change_frequency(ChangeFrequency::Weekly)
     .priority(0.8);
 ```
-
-# The path under `module_router!`
-
-A module-derived path cannot contain a dot, because module names are converted to kebab-case. To serve the sitemap from a module tree, declare a `sitemap` module and override its segment with `segment!`; a rename is used as written.
-
-```rust
-// src/app/sitemap.rs: serves /sitemap.xml
-use topcoat::{Result, router::{content::sitemap::Sitemap, route}};
-
-topcoat::router::segment!(rename = "sitemap.xml");
-
-#[route(GET)]
-async fn sitemap() -> Result<Sitemap> {
-    Ok(Sitemap::new().url("/"))
-}
-```
-
-Registering the explicit-path route from the first example instead works the same under `module_router!`; pass it to the builder by name or let `discover` collect it.

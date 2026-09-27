@@ -37,16 +37,16 @@ Topcoat is a modular, batteries-included Rust framework for building full-stack 
 ```rust,ignore
 use topcoat::{
     Result,
-    router::{Router, RouterBuilderDiscoverExt, page},
+    router::{module_router, page},
     view::{View, component, view},
 };
 
 #[tokio::main]
 async fn main() {
-    topcoat::start(Router::builder().discover().build()).await.unwrap();
+    topcoat::start(module_router!().build()).await.unwrap();
 }
 
-#[page("/")]
+#[page]
 async fn home() -> Result<impl View> {
     Ok(view! {
         <!DOCTYPE html>

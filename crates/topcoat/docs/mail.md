@@ -12,14 +12,14 @@ topcoat = { version = "0.9.0", features = ["mail", "mail-smtp"] }
 
 Choose a transport in [`MailConfig`] and register it with the router's [`mail`](RouterBuilderMailExt::mail) method:
 
-```rust
+```rust,standalone_crate
 use topcoat::{
     mail::{FileTransport, MailConfig, RouterBuilderMailExt},
-    router::{Router, RouterBuilderDiscoverExt},
+    router::{Router, RouterBuilderDiscoverExt, module_router},
 };
 
 pub fn router() -> Router {
-    Router::builder()
+    module_router!()
         .discover()
         .mail(
             MailConfig::builder()
@@ -37,6 +37,7 @@ Handlers use the registered transport. You can change delivery settings without 
 The [`mail!`] macro creates a [`Mail`] from `name: value` fields. Its `html` field accepts [`view!`](crate::view::view) markup:
 
 ```rust
+// src/app/api/welcome.rs
 use topcoat::{
     Result,
     context::Cx,
@@ -44,7 +45,7 @@ use topcoat::{
     router::route,
 };
 
-#[route(POST "/api/welcome")]
+#[route(POST)]
 async fn welcome(cx: &Cx) -> Result<&'static str> {
     let mail = mail! {
         from: ("Topcoat", "welcome@example.com"),

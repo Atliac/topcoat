@@ -7,6 +7,7 @@ A WebSocket lets a client and server exchange messages over a persistent connect
 Accept a [`WebSocketUpgrade`] parameter and return the response from [`on_upgrade`](WebSocketUpgrade::on_upgrade). Its callback receives the upgraded [`WebSocket`] and runs in a separate task. The handler returns the handshake response without waiting for that task to finish.
 
 ```rust
+// src/app/echo.rs
 use topcoat::{
     Result,
     router::{
@@ -16,7 +17,7 @@ use topcoat::{
     },
 };
 
-#[route(GET "/echo")]
+#[route(GET)]
 async fn echo(upgrade: WebSocketUpgrade) -> Result<Response> {
     upgrade.on_upgrade(|mut socket| async move {
         while let Some(Ok(message)) = socket.recv().await {
@@ -37,6 +38,7 @@ The extractor rejects non-`GET` requests with `405 Method Not Allowed` and inval
 The callback outlives the handler that upgraded the connection, so it cannot borrow the `Cx` the handler was called with. Clone the `Cx` and move the owned handle into the callback instead; it reads the same app and request context.
 
 ```rust
+// src/app/greet.rs
 use topcoat::{
     Result,
     context::{Cx, request_context},
@@ -51,7 +53,7 @@ struct Customer {
     name: String,
 }
 
-#[route(GET "/greet")]
+#[route(GET)]
 async fn greet(cx: &Cx, upgrade: WebSocketUpgrade) -> Result<Response> {
     let cx = cx.clone();
     upgrade.on_upgrade(move |mut socket| async move {

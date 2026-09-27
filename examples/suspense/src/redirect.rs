@@ -1,3 +1,5 @@
+mod login;
+
 use std::time::Duration;
 
 use topcoat::{
@@ -32,16 +34,5 @@ async fn content(cx: &Cx) -> Result<impl View> {
 // Stands in for a slow session lookup that comes back empty.
 async fn load_session_user(cx: &Cx) -> Result<&'static str> {
     tokio::time::sleep(Duration::from_secs(2)).await;
-    Err(redirect(href!(login).resolve(cx)).into())
-}
-
-// Where the redirect lands. A redirect thrown before the response commits,
-// like one returned straight from a page handler, would arrive as a real HTTP
-// redirect instead.
-#[page("./login")]
-pub async fn login() -> Result<impl View> {
-    Ok(view! {
-        <h1>"Log in"</h1>
-        <p>"The page redirected here after it had already started streaming."</p>
-    })
+    Err(redirect(href!(login::login).resolve(cx)).into())
 }

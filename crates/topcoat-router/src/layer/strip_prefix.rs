@@ -19,23 +19,32 @@ use crate::{
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,standalone_crate
 /// use topcoat::{
 ///     Result,
 ///     context::Cx,
-///     router::{Router, StripPrefixLayer, request::uri, route},
+///     router::{StripPrefixLayer, module_router, path_param, request::uri, route},
 /// };
 ///
-/// #[route(GET "/res/{*path}")]
-/// async fn files(cx: &Cx) -> Result<String> {
-///     // A request for `/res/logo.svg?version=2` returns `/logo.svg?version=2`.
-///     Ok(uri(cx).to_string())
+/// mod res {
+///     mod path {
+///         use super::super::*;
+///
+///         path_param!(*path);
+///
+///         #[route(GET)]
+///         async fn files(cx: &Cx) -> Result<String> {
+///             // A request for `/res/logo.svg?version=2` returns `/logo.svg?version=2`.
+///             Ok(uri(cx).to_string())
+///         }
+///     }
 /// }
 ///
-/// let router = Router::builder()
-///     .route(files)
+/// # fn main() {
+/// let router = module_router!()
 ///     .layer(StripPrefixLayer::new("/res"))
 ///     .build();
+/// # }
 /// ```
 ///
 /// # Matching the prefix

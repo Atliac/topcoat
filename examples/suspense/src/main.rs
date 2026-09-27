@@ -5,15 +5,13 @@ mod suspense;
 use topcoat::{
     Result,
     context::Cx,
-    router::{RouterBuilderDiscoverExt, Slot, error::redirect, href, layout, module_router, page},
+    router::{Slot, error::redirect, href, layout, module_router, page},
     view::{View, view},
 };
 
 #[tokio::main]
 async fn main() {
-    topcoat::start(module_router!().discover().build())
-        .await
-        .unwrap();
+    topcoat::start(module_router!().build()).await.unwrap();
 }
 
 #[page]

@@ -102,6 +102,7 @@ By default, `x-target` applies to successful responses. Add a status modifier to
 Return `422` with the form and an error message when validation fails. The `.422` target list leaves `comments` unchanged. A successful response updates both targets:
 
 ```rust
+// src/app/comments.rs
 use topcoat::{
     Result,
     context::Cx,
@@ -109,7 +110,7 @@ use topcoat::{
     view::{ViewExt, view},
 };
 
-#[route(POST "/comments")]
+#[route(POST)]
 async fn create_comment(cx: &Cx /* , Form(input): Form<NewComment> */) -> Result<Response> {
     let error: Option<&str> = None; // validate `input` here
 

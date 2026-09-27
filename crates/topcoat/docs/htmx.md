@@ -77,6 +77,7 @@ Other accessors read individual [request headers](https://htmx.org/reference/#re
 Use response types to set htmx [response headers](https://htmx.org/reference/#response_headers). They implement [`IntoResponseParts`], so place them before the body in the response tuple. This example changes the target and swap mode:
 
 ```rust
+// src/app/save.rs
 use topcoat::{
     Result,
     context::Cx,
@@ -85,7 +86,7 @@ use topcoat::{
     view::{ViewExt, ViewHandle, view},
 };
 
-#[route(POST "/save")]
+#[route(POST)]
 async fn save(cx: &Cx) -> Result<(HxRetarget, HxReswap, ViewHandle)> {
     let body = view! { cx => <div>"Saved!"</div> }.single().await?;
     Ok((
