@@ -1,3 +1,5 @@
+<!-- For agents: read [llms.txt](llms.txt) for Topcoat's APIs and application conventions. -->
+
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tokio-rs/topcoat/main/media/logo-dark.svg">
