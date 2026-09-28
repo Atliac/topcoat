@@ -121,9 +121,9 @@ async fn home() -> Result<impl View> {
 
 mod users {
     mod id {
-        use topcoat::{Result, router::{page, path_param}, view::{View, view}};
+        use topcoat::{Result, router::{module_param, page}, view::{View, view}};
 
-        path_param!(id);
+        module_param!(id);
 
         #[page]
         async fn user_profile() -> Result<impl View> {
@@ -256,7 +256,9 @@ Read path and query values from [`Cx`](crate::context::Cx). Any helper with acce
 
 ## Path parameters
 
-Call [`path_param!`](macro@path_param) with the parameter name from the URL. The macro generates a Pascal-cased type, so `path_param!(post_id: u64)` declares `PostId` for `{post_id}`:
+[`path_param!`](macro@path_param) declares a path parameter and generates a Pascal-cased type, so `path_param!(post_id: u64)` declares `PostId` for `{post_id}`. For module routing, use [`module_param!`](macro@module_param). It makes the same declaration and also sets the module's URL segment to that parameter.
+
+Both macros accept the same options, and you read their values with `path_param::<T>(cx)`:
 
 - After `path_param!(slug)`, `path_param::<Slug>(cx)` returns the percent-decoded segment as `&str`.
 - A type after `:` is parsed with [`FromStr`](std::str::FromStr). The default return type is `Result<&T, &<T as FromStr>::Err>`.
@@ -267,11 +269,11 @@ Call [`path_param!`](macro@path_param) with the parameter name from the URL. The
 use topcoat::{
     Result,
     context::Cx,
-    router::{page, path_param},
+    router::{module_param, page, path_param},
     view::{View, view},
 };
 
-path_param!(post_id: u64, error = bad_request);
+module_param!(post_id: u64, error = bad_request);
 
 #[page]
 async fn post(cx: &Cx) -> Result<impl View> {
@@ -284,7 +286,7 @@ Parsing occurs once per request and the result is memoized.
 
 Prefix the name with `*` to capture the remaining path as decoded segments. After `path_param!(*doc_path)`, `path_param::<DocPath>(cx)` returns [`CatchAllSegments`]. After `path_param!(*ids: u32)`, `path_param::<Ids>(cx)` returns `Result<&[u32], _>`.
 
-With [`module_router!`], a declaration inside a non-root route module also changes that module's segment to the parameter. See [`module_router!`] for module structure, nested parameters, and catch-all parameters.
+See [`module_router!`] for nested modules and catch-all routes, or [`path_param!`](macro@path_param) for parameters in explicit handler paths.
 
 ## Query parameters
 
@@ -348,7 +350,7 @@ use topcoat::{
     router::{
         Slot, StatusCode,
         error::{NotFoundError, RouterErrorExt},
-        layout, page, path_param,
+        layout, module_param, page,
     },
     view::{View, error_boundary, view},
 };
@@ -359,7 +361,7 @@ mod posts {
     mod id {
         use super::super::*;
 
-        path_param!(id);
+        module_param!(id);
 
         #[page]
         async fn post(cx: &Cx) -> Result<impl View> {

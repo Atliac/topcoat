@@ -175,7 +175,9 @@ The same form works for `#[layout]`, `#[layer]`, and `#[route]`.
 
 # Dynamic path parameters
 
-Call `path_param!` inside the module that should become dynamic. The declaration names the URL parameter and may name the type used to parse each captured segment. The macro changes that module's segment to the parameter and generates the Pascal-cased type used to read it.
+[`path_param!`](macro.path_param.html) declares a path parameter. For module routing, use [`module_param!`](macro.module_param.html), which makes the same declaration and also uses the parameter as the module's URL segment. Both accept the same options, and you read their values with `path_param::<T>(cx)`.
+
+For example, `module_param!(post_id: u64)` gives the module a `{post_id}` segment and creates the `PostId` type used to read its value:
 
 ```text
 src/
@@ -191,11 +193,11 @@ src/
 use topcoat::{
     Result,
     context::Cx,
-    router::{page, path_param},
+    router::{module_param, page, path_param},
     view::{View, view},
 };
 
-path_param!(post_id: u64, error = bad_request);
+module_param!(post_id: u64, error = bad_request);
 
 #[page]
 async fn post(cx: &Cx) -> Result<impl View> {
@@ -210,13 +212,13 @@ The parameter name comes from `post_id` in the declaration, not from the filenam
 
 `path_param::<T>(cx)` returns a request-scoped value:
 
-- After `path_param!(slug)`, `path_param::<Slug>(cx)` returns the percent-decoded segment as `&str` and cannot fail.
-- After `path_param!(post_id: u64)`, `path_param::<PostId>(cx)` parses with `FromStr`. Without `error = ...`, the function returns `Result<&u64, &<u64 as FromStr>::Err>`.
+- With `module_param!(slug)`, `path_param::<Slug>(cx)` returns the decoded segment as `&str`. It does not parse the value, so there is no parse error to handle.
+- With `module_param!(post_id: u64)`, `path_param::<PostId>(cx)` parses the value using `FromStr` and returns `Result<&u64, &<u64 as FromStr>::Err>`.
 - An `error = ...` option maps a parse failure to a router error. See the [`path_param!` reference](https://docs.rs/topcoat/latest/topcoat/router/macro.path_param.html) for the supported forms.
 
 Parsing occurs once per request. Later calls return the memoized result.
 
-A module contributes one segment, so it can declare one `path_param!`. Use nested modules for multiple parameters:
+A module adds one URL segment and can contain one `module_param!`. To put several parameters in a route, declare them in nested modules:
 
 | Module | Route path |
 |---|---|
@@ -231,8 +233,8 @@ Prefix a parameter name with `*` when its module should capture the remaining pa
 
 ```rust
 // src/app/docs/path.rs contributes /docs/{*path}.
-# use topcoat::router::path_param;
-path_param!(*path);
+# use topcoat::router::module_param;
+module_param!(*path);
 ```
 
 The declaration emits a `CatchAll` segment override. The module must be the last served segment, and the catch-all matches at least one segment.
@@ -288,7 +290,7 @@ async fn posts(cx: &Cx) -> Result<impl View> {
 
 `Static` is the default kind for regular modules. `Group` is the default for modules whose names start with `_`. A rename is used as written; Topcoat does not kebab-case it.
 
-`path_param!` emits a `Param` or `CatchAll` segment override, so do not combine it with `segment!` in the same module. A manual override creates the route capture but does not define a typed accessor.
+`module_param!` already sets the module's segment to `Param` or `CatchAll`. Use either `module_param!` or `segment!` in a module, not both. Using `segment!` alone captures the parameter but does not create a type for reading it with `path_param::<T>(cx)`.
 
 # Groups
 
