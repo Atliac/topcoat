@@ -1,4 +1,4 @@
-<!-- For agents: read [llms.txt](llms.txt) for Topcoat's APIs and application conventions. -->
+<!-- For agents: read [llms.txt](https://raw.githubusercontent.com/tokio-rs/topcoat/refs/heads/main/llms.txt) for Topcoat's APIs and application conventions. -->
 
 <div align="center">
   <picture>
