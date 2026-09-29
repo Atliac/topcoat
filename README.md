@@ -209,11 +209,12 @@ view! { <link rel="stylesheet" href=(topcoat::tailwind::stylesheet!())> }
 - [Source code formatting](https://github.com/tokio-rs/topcoat/blob/main/docs/cli/fmt.md): `topcoat fmt` for macro bodies.
 
 **Rendering**
-- [The `view!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.view.html): templating syntax, control flow, conditional attributes.
-- [The `#[component]` macro](https://docs.rs/topcoat/latest/topcoat/view/attr.component.html): async functions as components, with child content.
-- [The `attributes!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.attributes.html): reusable runtime attribute fragments.
-- [The `class!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.class.html): space-separated class lists from static and conditional entries.
-- [The `live!` and `emit!` macros](https://docs.rs/topcoat/latest/topcoat/view/macro.live.html): stream slow parts of a page in after the rest, with the `suspense` and `error_boundary` components built on them.
+- [`view!`](https://docs.rs/topcoat/latest/topcoat/view/macro.view.html) mixes HTML, Rust expressions, control flow, and component calls.
+- [`#[component]`](https://docs.rs/topcoat/latest/topcoat/view/attr.component.html) makes async functions callable from markup with named arguments and child content.
+- [`attributes!`](https://docs.rs/topcoat/latest/topcoat/view/macro.attributes.html) collects attributes to pass through components and spread onto elements.
+- [`class!`](https://docs.rs/topcoat/latest/topcoat/view/macro.class.html) joins base, optional, and conditional CSS classes.
+- [`suspense`](https://docs.rs/topcoat/latest/topcoat/view/struct.suspense.html) shows a fallback while content loads. [`error_boundary`](https://docs.rs/topcoat/latest/topcoat/view/struct.error_boundary.html) shows one if rendering fails.
+- [`live!` and `emit!`](https://docs.rs/topcoat/latest/topcoat/view/macro.live.html) replace part of a page as async work produces new HTML.
 
 **Routing**
 - [Router](https://docs.rs/topcoat/latest/topcoat/router/index.html): pages, layouts, and API routes; manual and auto-discovered.
@@ -238,6 +239,7 @@ view! { <link rel="stylesheet" href=(topcoat::tailwind::stylesheet!())> }
 - [Expressions](https://docs.rs/topcoat/latest/topcoat/runtime/macro.expr.html): the dual Rust/JavaScript expression language and its vocabulary.
 - [Procedures](https://docs.rs/topcoat/latest/topcoat/runtime/attr.procedure.html): async server functions callable from the browser.
 - [Shards](https://docs.rs/topcoat/latest/topcoat/runtime/attr.shard.html): components that re-render on the server when their arguments change.
+- [Client-side navigation](https://docs.rs/topcoat/latest/topcoat/runtime/struct.link.html): links, prefetching, and navigation without a full document reload.
 
 **Miscellaneous**
 - [Topcoat UI](https://github.com/tokio-rs/topcoat/blob/main/docs/ui.md): premade components vendored into your project for you to edit.
@@ -263,7 +265,6 @@ Planned features we'd like to bring to Topcoat. Have an idea? [Open an issue](ht
 - [ ] `OpenAPI` endpoints
 - [ ] Docs for how to deploy Topcoat
 - [ ] Pre-rendering for static pages
-- [ ] Client-side navigation + prefetching
 - [ ] `WebTransport`
 - [ ] Image optimization / resizing
 - [ ] Markdown support

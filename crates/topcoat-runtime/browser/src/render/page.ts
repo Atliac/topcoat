@@ -8,7 +8,7 @@ import type { Runtime } from "../runtime";
 import type { Scope } from "../scope";
 import type { SignalId } from "../signal-registry";
 import type { RerunRequest } from "./connection";
-import { newRender } from "./frames";
+import { newRender, type RenderToken } from "./frames";
 import { RUNTIME_HEADER } from "./request";
 import { RenderUnit } from "./unit";
 
@@ -30,16 +30,49 @@ export class PageUnit extends RenderUnit {
 	 * to rerun the page as a GET with the supplied signal values.
 	 */
 	rerunRequest(): RerunRequest {
-		// Include nested signals to preserve state across the whole page.
-		const signals = untrack(() => this.contentScope.collectSignalValues());
 		return {
 			url: pageUrl(),
 			headers: {
 				"Content-Type": "application/json",
 				[RUNTIME_HEADER]: "true",
 			},
-			body: JSON.stringify({ signals }),
+			body: this.signalBody(),
 		};
+	}
+
+	/**
+	 * Builds a JSON request body containing this document's signal values
+	 * so the server can render a page with the browser's current state.
+	 */
+	signalBody(): string {
+		// Include nested signals to preserve state across the whole page.
+		const signals = untrack(() => this.contentScope.collectSignalValues());
+		return JSON.stringify({ signals });
+	}
+
+	/**
+	 * Displays `next` as the new page and associates it with `render`.
+	 * Signals declared on both pages keep their values. Stops the previous
+	 * page's render over the WebSocket connection.
+	 */
+	replaceDocument(next: Document, render: RenderToken): void {
+		if (this.isDisposed) return;
+		this.runtime.connection.stop(this);
+		// Clear focus so the page update can replace the focused element too.
+		const active = document.activeElement;
+		if (active instanceof HTMLElement) active.blur();
+		this.replace((scope, adoptable) => {
+			const root = document.documentElement;
+			const fresh = next.documentElement;
+			for (const attr of Array.from(root.attributes)) {
+				if (!fresh.hasAttribute(attr.name)) root.removeAttribute(attr.name);
+			}
+			for (const attr of Array.from(fresh.attributes)) {
+				root.setAttribute(attr.name, attr.value);
+			}
+			morph(root, null, null, fresh.childNodes);
+			this.runtime.hydrate(document, null, null, scope, adoptable);
+		}, render);
 	}
 
 	/** Lets a dev refresh update the whole document with this page's state. */
