@@ -14,6 +14,10 @@ use crate::fmt::error::Error;
 #[derive(Args)]
 #[command(version, about = "Format the content of view macro invocations in Rust source files.", long_about = None)]
 pub struct FmtCommand {
+    /// Check formatting in memory without modifying files on disk.
+    #[arg(long, conflicts_with = "stdin")]
+    check: bool,
+
     #[arg(long)]
     /// If specified, reads the standard input and formats to standard output.
     stdin: bool,
@@ -144,6 +148,9 @@ impl FmtCommand {
                     Ok(true) => {
                         count += 1;
                         modified += 1;
+                        if self.check {
+                            println!("{}", file.display());
+                        }
                     }
                     Ok(false) => {
                         count += 1;
@@ -155,7 +162,11 @@ impl FmtCommand {
                 }
             }
 
-            if self.stdin {
+            if self.check {
+                if modified > 0 || failed > 0 {
+                    std::process::exit(1);
+                }
+            } else if self.stdin {
                 let mut buf = String::new();
                 std::io::stdin().read_to_string(&mut buf)?;
                 buf = self.format_source(&buf, &registry, None).await?;
@@ -199,7 +210,9 @@ impl FmtCommand {
         if output == input {
             Ok(false)
         } else {
-            std::fs::write(path, output)?;
+            if !self.check {
+                std::fs::write(path, output)?;
+            }
             Ok(true)
         }
     }

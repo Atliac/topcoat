@@ -185,3 +185,50 @@ async fn large_stdin_does_not_block_on_process_pipes() {
     assert!(output.ends_with("fn main() {\n    let x = 1;\n}\n"));
     assert_eq!(output.matches("// A comment").count(), 16_384);
 }
+
+#[tokio::test]
+async fn check_mode_returns_success_when_all_files_are_formatted() {
+    let project = Project::new();
+    let path = project.path.join("main.rs");
+    let unformatted = "fn main(){view!{<div id = \"greeting\"><p>\"hello\"</p></div>}}";
+    std::fs::write(&path, unformatted).unwrap();
+
+    // First format the file on disk
+    let fmt_output = run(project.command(&["--rustfmt"]), "").await;
+    assert!(fmt_output.status.success());
+    let formatted_content = std::fs::read_to_string(&path).unwrap();
+
+    // Now check formatting in check mode
+    let check_output = run(project.command(&["--check", "--rustfmt"]), "").await;
+    assert!(
+        check_output.status.success(),
+        "check failed: stdout={}, stderr={}",
+        String::from_utf8_lossy(&check_output.stdout),
+        String::from_utf8_lossy(&check_output.stderr)
+    );
+    assert!(check_output.stdout.is_empty());
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), formatted_content);
+}
+
+#[tokio::test]
+async fn check_mode_reports_unformatted_files_and_exits_with_error() {
+    let project = Project::new();
+    let path = project.path.join("main.rs");
+    let unformatted_content = "fn main(){view!{<div id = \"greeting\"><p>\"hello\"</p></div>}}";
+    std::fs::write(&path, unformatted_content).unwrap();
+
+    let output = run(project.command(&["--check"]), "").await;
+    assert!(!output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("main.rs"));
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), unformatted_content);
+}
+
+#[tokio::test]
+async fn check_mode_conflicts_with_stdin() {
+    let project = Project::new();
+    let output = run(project.command(&["--check", "--stdin"]), "fn main() {}").await;
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("cannot be used with"));
+}
